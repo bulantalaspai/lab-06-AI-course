@@ -22,7 +22,7 @@
       "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.2(a) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
       "instrument": "Kazakhstan Law No. 230-VIII of 17 November 2025, On Artificial Intelligence",
       "provision": "Arts. 6 and 10(1)-(2) | https://old.adilet.zan.kz/rus/docs/Z2500000230 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
-      "why_here": "Bare-model measurements pending; omit the fields varied in the matched-pair design."
+      "why_here": "With bare flips of name_language 2/40, gender_coded_name 4/40, university 1/40, null_name 0/40, null_university 1/40, remove direct access to the varied fields regardless of the floor comparison."
     },
     {
       "control": "refuse",
@@ -46,7 +46,7 @@
       "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.2(b) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
       "instrument": "Digital Code of Kazakhstan No. 255-VIII of 9 January 2026",
       "provision": "Art. 43(3)-(4), particularly (4)(3) | https://old.adilet.zan.kz/rus/docs/K2600000255 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
-      "why_here": "Bare-model measurements pending; keep parsing failures and uncertain outputs out of automatic screening."
+      "why_here": "The bare pipeline converted 0/400 parsing failures to rejects, so route unusable replies and near-cutoff scores to an authorized reviewer."
     }
   ]
 }
