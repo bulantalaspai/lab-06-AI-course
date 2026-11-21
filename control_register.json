@@ -1,0 +1,52 @@
+{
+  "harness_controls": [
+    "validate_input",
+    "blind",
+    "refuse",
+    "log",
+    "escalate"
+  ],
+  "format_problems": [],
+  "entries": [
+    {
+      "control": "validate_input",
+      "principle": "Robustness, security and safety",
+      "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.4(a) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "instrument": "Kazakhstan Law No. 230-VIII of 17 November 2025, On Artificial Intelligence",
+      "provision": "Art. 11(1), (3) and Art. 18(1)(1)-(3) | https://old.adilet.zan.kz/rus/docs/Z2500000230 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
+      "why_here": "Part 1 uses valid merit fields, so the deliberately malformed request in Part 4 is the test of pre-inference range and type enforcement."
+    },
+    {
+      "control": "blind",
+      "principle": "Fairness and privacy",
+      "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.2(a) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "instrument": "Kazakhstan Law No. 230-VIII of 17 November 2025, On Artificial Intelligence",
+      "provision": "Arts. 6 and 10(1)-(2) | https://old.adilet.zan.kz/rus/docs/Z2500000230 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
+      "why_here": "Bare-model measurements pending; omit the fields varied in the matched-pair design."
+    },
+    {
+      "control": "refuse",
+      "principle": "Human autonomy and oversight",
+      "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.2(a)-(b) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "instrument": "Kazakhstan Law No. 94-V of 21 May 2013, On Personal Data and Their Protection",
+      "provision": "Arts. 14 and 19-1(1)-(2) | https://old.adilet.zan.kz/rus/docs/Z1300000094 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
+      "why_here": "Part 1 tests in-scope adult profiles with consent, so a separate pre-model gate is necessary to enforce consent and reject the out-of-scope cases tested in Part 4."
+    },
+    {
+      "control": "log",
+      "principle": "Accountability",
+      "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.5(a)-(b) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "instrument": "Kazakhstan Law No. 230-VIII of 17 November 2025, On Artificial Intelligence",
+      "provision": "Arts. 8(1) and 15(2)(3) | https://old.adilet.zan.kz/rus/docs/Z2500000230 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
+      "why_here": "Linking the measured harness outcomes to an input hash, configuration and reason code makes the follow-up to the bare comparison inspectable."
+    },
+    {
+      "control": "escalate",
+      "principle": "Human agency and oversight",
+      "principle_source": "OECD Council Recommendation on Artificial Intelligence, OECD/LEGAL/0449 (2019, amended 2024), non-binding, section 1.2(b) | https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "instrument": "Digital Code of Kazakhstan No. 255-VIII of 9 January 2026",
+      "provision": "Art. 43(3)-(4), particularly (4)(3) | https://old.adilet.zan.kz/rus/docs/K2600000255 | Design benchmark for the synthetic lab and a provision to assess for a real deployment.",
+      "why_here": "Bare-model measurements pending; keep parsing failures and uncertain outputs out of automatic screening."
+    }
+  ]
+}

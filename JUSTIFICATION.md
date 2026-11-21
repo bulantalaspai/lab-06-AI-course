@@ -1,93 +1,73 @@
 # JUSTIFICATION — the design of the harness, and why
-<!-- STUDENT: replace -->
-
-Replace this whole template with your own text. Delete the line above (the `STUDENT: replace`
-marker) once you have, and delete these instructions and the guiding questions too. Keep the headings
-that follow. Which dimension each section is graded against is in the README.
-
-Two rules for the whole document:
-
-- **Every claim about a law needs a citation to the instrument and the provision** it rests on,
-  written so a reader can find the text. You identify the instruments yourself, from the primary text.
-  A chat model's statement is not a citation.
-- **Everything you describe must be in the code or in the submitted run.** A control you describe
-  but did not build, or a refusal you state but never triggered, belongs under "what the design still
-  fails to protect against".
-
-The guiding questions are prompts, not a form.
 
 ## 1. What the system may do
 
-(Dimension: Integration of Constraints into the Design.)
+Tulpar is a fictional Kazakhstan-based scholarship fund. The notebook screens a closed catalogue of invented adult applications for the declared scholarship purpose. It can return a provisional shortlist or reject recommendation on a valid, consenting profile if no review rule fires. A real fund would decide awards and would need human approval before a recommendation could close an applicant’s access to the award process. The notebook returns a routed verdict and logs it. It has no reviewer interface or award authority.
 
-- What is the system for, stated narrowly? What decisions may it make on its own, and which may it only
-  inform?
-- For each control you built (input validation, blinding, refusal, log, escalation): which
-  constraint made you build it, and where in the code can a reader find it?
-- Did any constraint change the architecture itself, so that the design would be different without it?
-  Name a decision you made differently because of a constraint, and what you would have done otherwise.
+| Control | Enforcement in the notebook and supplied core | Design reason |
+|---|---|---|
+| Input validation | Part 2d enables `validate_input`. `screen` checks numeric types and ranges and requires a Boolean consent value before inference. | Prevent impossible values from becoming apparently valid merit recommendations. |
+| Blinding | Parts 2a and 2d configure the fields withheld by the paired renderer. The renderer excludes the application ID in both runs. | Remove direct access to name and university and keep eligibility checks on age and consent outside the prompt. |
+| Refusal | `screen` gates the purpose, age and consent. Part 2b adds a name-format check and accepts only listed programmes and universities. | Enforce intake and purpose in code before invoking an agent that would otherwise attempt to screen the request. |
+| Logging | Part 2d sets `log_path`. The supplied `screen` finalizer appends a structured row before returning the verdict. | Retain evidence of the reason and route even for requests rejected at intake. |
+| Escalation | `screen` routes unparseable replies and parsed scores inside the inclusive band to review. Part 2c routes parsed replies with missing or whitespace-only reasons. | Hold uncertain or unusable recommendations for a reviewer who can examine the underlying application. |
+
+The consent gate changes the execution order. Code checks for permission before the model sees the application, and the prompt omits the consent field. The model cannot override that gate. The supplied system prompt and checkpoint are the same in both runs.
 
 ## 2. What it must refuse
 
-(Dimension: Refusal Boundaries and Enforcement.)
+The first failed check determines the reason. Validation runs first, then the built-in purpose, minor and consent gates, then the extra intake checks. Every refusal returns no model decision or score and appends a log row with no fields shown.
 
-- What does it refuse (purposes, inputs, applicants)? Where is each refusal enforced in code, and
-  where in your submitted run did it fire?
-- For each refusal: **which legitimate case does it also block**, and who bears that cost? Is that cost
-  acceptable, and why?
-- What happens to a refused request: is it recorded, is anyone told, can the person ask for a decision to
-  be made by a human instead?
+| Reason code | Boundary and potential cost |
+|---|---|
+| `invalid_input` | An impossible or wrongly typed merit, age or consent value stops inference. A valid applicant with a data-entry mistake or a transcript using a different scale needs a correction route. |
+| `purpose_not_allowed` | Only `scholarship_screening` is permitted. Ranking by ethnicity is outside scope. An authorized staff member who submits a mistyped purpose has to correct the request. |
+| `minor` | The lab routes applicants under eighteen away from automated screening. An eligible minor may still need a timely human intake process. |
+| `no_consent` | Adults who decline the automated route still need a way to apply. A false flag can also reflect an intake error. |
+| `unsafe_name_format` | The prototype permits letter-led Unicode name components and combining marks, separated by a space, hyphen or apostrophe. The supplied instruction-shaped name violates this syntax. Legitimate names with initials or other punctuation can also fail. |
+| `unknown_program`, `unknown_university` | Inputs outside the synthetic catalogues are refused. A valid new institution or programme may require manual reconciliation, which costs an applicant time. |
+
+In practice, a fund would give the person a plain-language reason and a staffed human or correction route before the same application deadline. The notebook emits the machine-readable verdict and audit record. Notices, appeals and manual intake are deployment work. The narrow schema is acceptable for the fixed exercise and would need inclusive intake testing before live use. Since `name` is withheld, the name check enforces the intake format independently of the prompt.
+
+**PENDING GPU RESULTS.** Add the actual Part 4 results for the ordinary request and each refusal, including the bare outcomes, zero-call assertions and clean-profile false-refusal count. Unknown catalogue entries are covered by deterministic control tests and are outside the six real-model probes.
 
 ## 3. What record it keeps
 
-(Dimension: Accountability Record and Auditability.)
+Could a reviewer use one record to identify why this application was allowed, held or refused without rerunning Qwen?
 
-- What is the **audit question** your record is designed to answer (for example, "why did this
-  applicant get this outcome, and could someone else reconstruct it without re-running the model?")?
-  State it in one sentence, then show that a record in `decisions.jsonl` answers it.
-- What is in each record, and what is left out on purpose (for example, personal data you chose not to
-  store)? Why that line?
-- How long is the record kept, who may read it, who may change it, and what stops a record being
-  edited after the fact? What does the record not let you reconstruct?
+The JSONL row contains a record ID, application ID, model and prompt version, harness configuration, field names shown and withheld, input hash, raw reply, parsed decision and score, controls fired, outcome, reason code, escalation flag and UTC time. For a model call the hash covers the rendered applicant text. For a refusal it fingerprints the submitted profile, because no prompt was shown. The record excludes separate copies of input field values. The raw reply can echo shown values, and an unsupported purpose label can appear in the refusal note. A hash is useful for matching known input and does not disclose why the model generated its answer. The log gives the route and stated reason, alongside the output and policy version. It cannot reconstruct the withheld fields, verify the truth of the rationale, or show what a reviewer ultimately decided.
+
+**PENDING GPU RESULTS.** Cite one actual record ID and report its outcome, reason code, controls fired and evidence of what the model saw or whether it was called. Compare an actual escalation, if present, with an actual refusal.
+
+The lab retains the synthetic JSONL as coursework evidence. The supplied writer appends during execution, but a filesystem user can later edit or delete it. For live deployment I would restrict read access to assigned reviewers and auditors, allow only a dedicated service account to append, keep protected integrity-checked copies, and record any corrections as new events. The fund would set a schedule that keeps records through the applicable review and appeal window and disposes of them when their documented purpose ends, subject to any applicable retention rule. A production log would also need a durable reviewer disposition and appropriately minimized reply text. Those facilities are outside the notebook. Kazakhstan’s personal-data law ties storage duration to the processing purpose, unless legislation provides otherwise. [Law No. 94-V, Art. 12(2), official text](https://old.adilet.zan.kz/rus/docs/Z1300000094).
 
 ## 4. The legal constraints
 
-(Dimension: Identification and Citation of Legal Constraints.)
+**Prediction recorded before legal research.** The audit log will be hardest to tie to a specific provision. General accountability language may justify keeping a record, but I expect any direct logging duty to depend on the operator, system classification and records covered.
 
-- Which instruments apply to an automated screening decision about people, and why do they
-  apply to this system (jurisdiction, subject matter, who is the operator)? Cite the instrument and the
-  provision for each.
-- For each, what does the law **require** of the system, and what does it merely **permit** or leave
-  to you? Where did you do more than the law requires, and why?
-- Where is the text you cite stated to apply to automated decisions specifically? If you could
-  not find a provision for a control, say so rather than inventing one.
+I assume a Kazakhstan-based fund would own or operate a screening tool for applicants there. The classroom run processes invented profiles and makes no award or exclusion decision about a real person. Kazakhstan’s personal-data statute defines personal data as information about a person supplemented by one or more identifiers. The synthetic records give no such reference, so I use the personal-data provisions as design benchmarks. A live fund would have to establish how the rules apply to its actual operator and workflow. [Law No. 94-V of 21 May 2013, On Personal Data and Their Protection, Art. 1(2), (14-1), (16)](https://old.adilet.zan.kz/rus/docs/Z1300000094).
+
+- **Validation and blinding.** The Law on Artificial Intelligence requires safe, reliable operation and owner or holder risk management. Its equality provision covers discrimination including grounds of sex and language, while its data protection provision addresses confidentiality and safeguards for personal data. The checks limit invalid merit values, and withholding name removes access to one route to language or gender inference. University tier is excluded because it is outside the lab’s merit criteria and can act as a proxy for unequal access. The law does not designate university tier as a named protected ground or prescribe these prompt fields or numeric limits. [Law No. 230-VIII of 17 November 2025, On Artificial Intelligence, Arts. 6, 10(1)–(2), 11(1), (3), and 18(1)(1)–(3)](https://old.adilet.zan.kz/rus/docs/Z2500000230).
+- **Refusal.** The Personal Data Law limits use to previously stated collection purposes. It limits automated processing that creates, changes or ends a subject’s rights or legitimate interests to cases where consent was obtained or a law provides for it. It also provides for an explanation of processing and consequences and an opportunity to object. Objections must be considered within three working days and their result communicated. A real shortlist that gates access to funding could affect legitimate interests, so I would evaluate the provision before any live use. The lab uses a Boolean consent gate and assumes no alternative legal basis. The under-eighteen rule, exact purpose allowlist and name syntax are prototype policies. A consent flag alone cannot provide notice or an objection process. [Law No. 94-V, Arts. 14 and 19-1(1)–(3)](https://old.adilet.zan.kz/rus/docs/Z1300000094).
+- **Traceability.** The AI Law requires ongoing role-dependent oversight and requires owners and holders to maintain system documentation according to impact and the applicable documentation list. It also gives users a route to seek explanations of results affecting their rights, freedoms or legitimate interests under the user agreement and applicable law. The JSONL is a design choice to support that oversight and explanation. These provisions do not establish that every case must have this schema or that it meets any applicable documentation list. Risk classification and the operative list would need checking before deployment. [Law No. 230-VIII, Arts. 8(1), 15(2)(3), 16(1)(4) and 17(1)](https://old.adilet.zan.kz/rus/docs/Z2500000230).
+- **Escalation.** Kazakhstan’s Digital Code prohibits discriminatory outcomes from algorithmic decision systems. Under the conditions in Article 43, a person subject to a fully automated decision may seek information on the system’s use, an explanation of key factors and criteria, and review with an authorized specialist where the decision has legal consequences or can affect rights or legitimate interests. Whether an automated recommendation meets that provision depends on actual human participation, applicable legislation or agreement, and the effect of the result. Proactive review of the score band and failures is a prototype choice. It does not implement a right to request review for a case outside the band. [Digital Code of Kazakhstan No. 255-VIII of 9 January 2026, Art. 43(1)–(5)](https://old.adilet.zan.kz/eng/docs/K2600000255/compare/rus).
 
 ## 5. The ethical principles
 
-(Dimension: Identification of Applicable Ethical Principles.)
+The OECD Council Recommendation on Artificial Intelligence is a non-binding standard. Its fairness and privacy principle supports withholding names and university context, and its human agency and oversight safeguard supports consent, refusal of misuse and escalation. Robustness, security and safety support validation before inference. Accountability supports recording who or what caused a route. Transparency and explainability motivate the missing-rationale rule and giving an affected applicant a reason they can challenge. [OECD/LEGAL/0449, adopted 2019 and amended 2024, §§ 1.2–1.5](https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449).
 
-- Which principles govern an automated screening decision, and which decision in **this** system does
-  each bear on (not in general)? Cite the source in which you found each principle named, and say
-  what status that text has.
-- Where do the principles conflict with one another in your design (for example, between
-  treating applicants identically and treating applicants fairly given what you measured)? Which did
-  you put first, and why?
-- Where does ethics demand something the law does not?
+Review access competes with speed, and collecting evidence for an appeal competes with privacy. The design keeps enough information to identify the prompt version and path while withholding fields irrelevant to scoring. It holds a recommendation with an unusable rationale even when the reply passes the parser. Ethical accountability also calls for monitoring unequal review access and providing a practical human correction route for an honest applicant blocked by the schema. Those choices follow the risks of this intake and go beyond the provisions cited for a specific automated outcome. [OECD/LEGAL/0449, §§ 1.2(b), 1.3(iv) and 1.5(b)–(c)](https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449).
 
 ## 6. The trade-offs
 
-(Dimension: Trade-off Analysis and Justification.)
+The band centers on the integer cutoff that best separates profile scores by the bare model’s shortlist and reject labels, weighting each label equally. Ties favor the cutoff closest to the midpoint of the class medians. The band uses observed score distances to target the documented share of scored baseline profiles and retains ties at its edge. If only one label occurs, it centers on that class’s median. If no replies are scored, the band covers every possible score. This is a workload heuristic built on the model’s own labels. No independent eligibility labels or calibrated probabilities are available.
 
-- For each control: what does it cost (errors, speed, reviewer time, applicant privacy, extra model
-  calls), and what harm does it prevent? Use your before-and-after measurement where you can.
-- The width of your escalation band is a trade-off too: how many applicants does it send to a person, who reads
-  them, and what happens to the cases outside it that nobody re-checks? A threshold calibrated on one
-  configuration does not transfer to another: did you recalibrate it after you changed what the model
-  sees, and what share was actually escalated?
-- Why did you choose the balance you did, and what would make you choose differently?
-- What does the design **still fail to protect against**? What would closing that gap take, and why did
-  you not do it?
+Validation and refusal save generation on blocked requests but can defer legitimate applications and require a staffed correction route. Blinding may remove cues the model used and changes prompt form, so score movements have more than one explanation. Logging exposes some prompt-derived content and adds disk writes. Escalation uses reviewer time and can create unequal delays. Outside the review band a high-confidence-looking error, an unsupported rationale or an indirect proxy can still affect a recommendation. The optional counterfactual check is disabled to avoid extra model calls and keeping a sensitive cue in the model context.
+
+**PENDING GPU RESULTS.** Add the actual inclusive band, planned and observed review shares, reason mix, outcome and score changes, refusals, wrong refusals, model calls, and costs printed by the notebook. The measured run applies the bare-calibrated band as designed. Before a deployment I would recalibrate on a separate blinded calibration set, check subgroup-specific escalations, and have reviewers test false rejection, turnaround time and the impact of routing on applicants. Compare these measurements with the staff workload and missed-case costs before changing the band.
 
 ## AI-use declaration
 
-Half a page: which AI tools you used in this assignment and for what. If you used none, say so.
+I used OpenAI Codex to work through the supplied README, notebook and modules, draft the required student responses and implement the harness configuration and the two policy hooks. Codex helped plan the matched-pair read-out, record the predictions before model execution, prepare the Colab workflow and build deterministic tests for the validation, refusal, blinding, logging and escalation paths. I used the course-supplied Qwen model as the study subject in the notebook design. A deterministic test double was used for local software checks and does not supply evidence about Qwen’s screening behavior.
+
+Codex helped find and read Kazakhstan’s official legal texts and the OECD Recommendation, and drafted the control mappings and written analysis. The articles and sections cited refer to those primary documents. Codex also helped distinguish synthetic inputs, provisions relevant to a real deployment, and choices made for the prototype. The scope assumption is a fund operating in Kazakhstan. I remain responsible for checking the primary texts and the applicability arguments, and for reviewing every numerical claim against the saved notebook before submission. The code, predictions and legal analysis can be inspected separately from the evidence produced by the full notebook run. Any results added after the GPU run should be transcribed from that run and checked against its JSONL evidence.

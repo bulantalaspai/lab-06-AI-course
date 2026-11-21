@@ -1,66 +1,23 @@
 # REPORT — what the measurement showed, who it affects, and whose responsibility it is
-<!-- STUDENT: replace -->
-
-Replace this whole template with your own text. Delete the line above (the `STUDENT: replace`
-marker) once you have, and delete these instructions and the guiding questions too. Keep the three
-numbered headings. Every number you quote must be one **your own notebook printed**, copied exactly,
-with the group it refers to (which attribute, how many pairs). Which dimension each section is
-graded against is in the README.
-
-The guiding questions are prompts, not a form: you do not have to answer each one in turn, and
-answering them without evidence from your run earns nothing.
 
 ## 1. Measurement read-out
 
-(Dimension: Evidence of Specific Impact.)
+**PENDING GPU RESULTS.** The notebook is prepared for the matched-pair run. The baseline, harness comparison and refusal probes require the same Qwen checkpoint on a Colab T4. No model measurements or confidence intervals are available from the local control tests.
 
-Guiding questions:
+The same-group name floor measures sensitivity to replacing a name within its language group and gender coding. The same-tier university floor measures sensitivity to choosing a different institution within its tier. Pair members share the same layout. The floors therefore cover these particular changes to irrelevant strings under greedy decoding. They leave prompt order, alternate wording, new identity strings, other hardware, real applicant distributions and other models untested.
 
-- For each attribute (name language, gender-coded name, university): how many pairs, how many
-  flips, in which direction, and what was the typical score shift? Are these counts and magnitudes,
-  or a description of them?
-- Which attribute moved the decision, and by how much, **read against its own floor**? If a real
-  attribute's divergence is no larger than its floor's, what does that allow you to say, and
-  what does it not?
-- How much of the divergence could be noise? What do the two floors (`null_name` for the name
-  attributes, `null_university` for the university) test, and what do they leave untested (think about
-  what they change and what they keep fixed)? What would a stronger estimate require?
-- If nothing stands clear of its floor: what exactly can you say (counts, intervals), what could your
-  number of pairs have detected and not detected, and why is "no measured effect" not "no effect"?
-- Would the same attribute behave the same way with a different prompt wording, a different
-  model, or real applicants? Say what your run can and cannot support.
+The baseline read-out gives pair counts, flip rates with Wilson intervals, directional discordance and exact McNemar tests, signed score gaps and mean absolute score differences with bootstrap intervals. Directional significance and comparison with a floor answer different questions. Scores can move in both directions even when their signed mean cancels. Overlapping marginal confidence intervals are only a rough comparison. The exact-test detection counts describe the minimum directional discordance under specified conditions and do not establish a general guarantee of power. A stronger follow-up would rerun with a larger independent sample, more varied names and institutions, preregistered contrasts and a separate prompt-layout probe.
+
+With the harness enabled, each matched pair has identical model text and identical policy inputs for routing. Pair agreement checks that enforced information boundary. Profile-level changes combine removed fields, altered layout and human-review routing.
 
 ## 2. Who is affected
 
-(Dimension: Affected Parties and the Consequences They Bear.)
+**PENDING GPU RESULTS.** The observed directional discordances and their uncertainty are needed to identify which name or university groups were more often disadvantaged within the measured pairs. An inconsistent pair shows that two profiles with equal merit received different treatment. With no independent eligibility labels, the experiment cannot locate the correct decision or count genuinely wrong awards.
 
-Guiding questions:
-
-- On each side of a **wrong** decision, who is it? Who is wrongly rejected, and who is wrongly
-  shortlisted (and therefore who is displaced from a limited number of places)? Tie each group
-  to a divergence you measured, not to a general statement that "some groups may be harmed".
-- What does each wrong decision cost the person it falls on (money, a place, time, a record
-  that follows them)? Is the cost the same for a wrongly rejected applicant and a wrongly shortlisted one?
-- Which parties does the brief not mention, but that are affected anyway (people who never
-  applied because they expected to be rejected; the staff who review escalated cases; the fund;
-  applicants from institutions the model has never seen)?
-- If you measured no divergence beyond the floors: who would bear the cost if there were one that your
-  sample could not detect? Tie that to what your number of pairs could and could not see.
-- Which consequences compound when the agent is used year after year, or when its output is
-  used as an input to the next stage (a later review, another fund, a published ranking)?
+A wrongly rejected applicant can lose financial support and access to study or have to spend scarce time pursuing a correction. A wrongly shortlisted applicant still faces later review and may consume a slot or interview that an equally qualified applicant needed. Applicants whose institution is absent from the catalogue or whose name fails its syntax can incur delays before the merits are read. People who expect exclusion may never apply and are absent from the experiment. Human reviewers absorb the escalations and can create a new bottleneck. The fund bears the costs of overruns, appeals and reputational damage. If a screening output becomes a later ranking input, an early flag can follow a person beyond the first decision. Across cycles, small recurring disparities can compound even when there is too little evidence to distinguish them from a floor in this run.
 
 ## 3. Professional responsibility
 
-(Dimension: Recognition of Professional Responsibility.)
+As the developer, I have to verify pair invariants, confirm that identity and eligibility fields never enter the blinded prompt, and test that disallowed requests make no generation call. I also have to check that parser failures and blank rationales route to a person, every outcome receives a record and every comparison can be reproduced from the saved notebook. Local deterministic checks exercise control behavior. Deployment evidence would require the real model run, independent evaluation of errors and subgroup effects, and workload measurements with actual reviewers. I would disclose the two floor definitions, interval widths, lack of ground-truth outcomes and the difference between equal pair prompts and evidence of equitable screening.
 
-Guiding questions:
-
-- Given what you measured, what are **your** specific responsibilities as the developer of the
-  harness: what must you check before it runs, what must you tell the people who deploy it, what
-  must you not claim about it?
-- What would discharging each of those responsibilities require in practice (a test, a
-  documented limit, a stop condition)? What have you actually done in this lab, and what is left?
-- Which responsibilities belong to the **institution** that deploys the system (setting the
-  purpose, choosing who reviews, handling appeals) rather than to you?
-- Where do the two conflict? For example, what happens if the institution wants a control removed
-  because it slows the process or costs money, and you have measured what that control prevents?
+The deploying fund owns eligibility and merit policy, appoints trained reviewers with authority to reverse a recommendation, provides an accessible correction and appeal channel and decides when service levels require more staffing. I would stop automated screening if an out-of-scope request reached the model, records were missing, or review cases exceeded the staffed queue. If the fund asked to remove a verified gate for throughput, I would document which failures would recur and keep those cases on human intake until the fund could meet the conditions that justified automation.
